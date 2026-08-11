@@ -1,0 +1,247 @@
+{
+  "breeds": [
+    {
+      "id": 1,
+      "name": "Pastor Alemán",
+      "description": "Perro de trabajo muy inteligente, leal y alerta. Requiere alta estimulación mental y física; propenso a reactividad por frustración o guardias visuales.",
+      "energy_level": 4,
+      "prey_drive": 4,
+      "sensitivity": 4,
+      "arousal_threshold": 4,
+      "image_url": "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?auto=format&fit=crop&w=600&q=80",
+      "created_at": "2026-08-10T23:05:20.019Z"
+    },
+    {
+      "id": 2,
+      "name": "Pastor Belga Malinois",
+      "description": "Raza de altísima energía e impulso de trabajo extremo. Sensible al movimiento rápido y altamente reactivo si no se encauza su impulso de presa.",
+      "energy_level": 5,
+      "prey_drive": 5,
+      "sensitivity": 4,
+      "arousal_threshold": 5,
+      "image_url": "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?auto=format&fit=crop&w=600&q=80",
+      "created_at": "2026-08-10T23:05:20.024Z"
+    },
+    {
+      "id": 3,
+      "name": "Border Collie",
+      "description": "Perro pastor de inteligencia superior y sensibilidad extrema a estímulos visuales en movimiento. Susceptible a fijación y reactividad ante vehículos y bicicletas.",
+      "energy_level": 5,
+      "prey_drive": 4,
+      "sensitivity": 5,
+      "arousal_threshold": 4,
+      "image_url": "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=600&q=80",
+      "created_at": "2026-08-10T23:05:20.025Z"
+    },
+    {
+      "id": 4,
+      "name": "Golden Retriever",
+      "description": "Perro amigable, equilibrado y adaptable. Generalmente de bajo umbral de reactividad agresiva, pero propenso a reactividad por sobre-excitación social.",
+      "energy_level": 4,
+      "prey_drive": 3,
+      "sensitivity": 4,
+      "arousal_threshold": 2,
+      "image_url": "https://images.unsplash.com/photo-1633722715463-d30f4f325e24?auto=format&fit=crop&w=600&q=80",
+      "created_at": "2026-08-10T23:05:20.027Z"
+    },
+    {
+      "id": 5,
+      "name": "Labrador Retriever",
+      "description": "Raza entusiasta, golosa y extrovertida. Su reactividad suele derivar de la frustración en la correa cuando desea saludar a otros perros o personas.",
+      "energy_level": 4,
+      "prey_drive": 3,
+      "sensitivity": 3,
+      "arousal_threshold": 2,
+      "image_url": "https://images.unsplash.com/photo-1591769225440-811ad7d6eab2?auto=format&fit=crop&w=600&q=80",
+      "created_at": "2026-08-10T23:05:20.030Z"
+    },
+    {
+      "id": 6,
+      "name": "Rottweiler",
+      "description": "Perro guardián seguro, leal y sereno pero reservado. Requiere desensibilización temprana para evitar guardias territoriales o reactividad por desconfianza.",
+      "energy_level": 4,
+      "prey_drive": 4,
+      "sensitivity": 3,
+      "arousal_threshold": 3,
+      "image_url": "https://images.unsplash.com/photo-1567752881298-894bb81f9379?auto=format&fit=crop&w=600&q=80",
+      "created_at": "2026-08-10T23:05:20.031Z"
+    },
+    {
+      "id": 7,
+      "name": "American Staffordshire Terrier",
+      "description": "Perro atlético, afectuoso y de gran tenacidad física. Muy vinculado a su guía; propenso a reactividad defensiva o tensión cuando está tenso con la correa.",
+      "energy_level": 4,
+      "prey_drive": 4,
+      "sensitivity": 4,
+      "arousal_threshold": 4,
+      "image_url": "https://images.unsplash.com/photo-1598133894008-61f7fdb8cc3a?auto=format&fit=crop&w=600&q=80",
+      "created_at": "2026-08-10T23:05:20.033Z"
+    },
+    {
+      "id": 8,
+      "name": "Beagle",
+      "description": "Sabueso guiado por el olfato, independiente y curioso. Su impulso de seguimiento de rastros puede provocar tirones de correa y reactividad por frustración vocal.",
+      "energy_level": 4,
+      "prey_drive": 5,
+      "sensitivity": 3,
+      "arousal_threshold": 3,
+      "image_url": "https://images.unsplash.com/photo-1505628346881-b72b27e84530?auto=format&fit=crop&w=600&q=80",
+      "created_at": "2026-08-10T23:05:20.035Z"
+    },
+    {
+      "id": 9,
+      "name": "Jack Russell Terrier",
+      "description": "Pequeño terrier de enorme energía e impulso de caza inagotable. Reacciona velozmente ante estímulos repentinos, ruidos fuertes y movimiento de presa.",
+      "energy_level": 5,
+      "prey_drive": 5,
+      "sensitivity": 3,
+      "arousal_threshold": 5,
+      "image_url": "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?auto=format&fit=crop&w=600&q=80",
+      "created_at": "2026-08-10T23:05:20.037Z"
+    },
+    {
+      "id": 10,
+      "name": "Dóberman Pinscher",
+      "description": "Perro elegante, atlético y de reacción ultrarrápida. Vigilante de su entorno y muy receptivo al estrés del guía; propenso a reactividad por desconfianza.",
+      "energy_level": 4,
+      "prey_drive": 4,
+      "sensitivity": 4,
+      "arousal_threshold": 4,
+      "image_url": "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?auto=format&fit=crop&w=600&q=80",
+      "created_at": "2026-08-10T23:05:20.038Z"
+    },
+    {
+      "id": 11,
+      "name": "Shiba Inu",
+      "description": "Raza japonesa independiente, limpia y de temperamento felino. Alta sensibilidad a la invasión de su espacio vital y reactividad franca hacia otros perros.",
+      "energy_level": 3,
+      "prey_drive": 4,
+      "sensitivity": 4,
+      "arousal_threshold": 4,
+      "image_url": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=600&q=80",
+      "created_at": "2026-08-10T23:05:20.040Z"
+    },
+    {
+      "id": 12,
+      "name": "Mestizo (Criollo)",
+      "description": "Perro de ascendencia combinada con gran adaptabilidad y diversidad genética. Perfil de temperamento variable con requerimientos personalizados de desensibilización.",
+      "energy_level": 3,
+      "prey_drive": 3,
+      "sensitivity": 3,
+      "arousal_threshold": 3,
+      "image_url": "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=600&q=80",
+      "created_at": "2026-08-10T23:05:20.041Z"
+    }
+  ],
+  "dogs": [
+    {
+      "id": 1,
+      "name": "Kira",
+      "breed_id": 1,
+      "age": 3,
+      "weight": 28.5,
+      "gender": "Hembra",
+      "photo_url": "[\"Dog off leash\",\"Bike/Skateboard\",\"Loud Noise\"]",
+      "triggers": "Suele tensionarse si ve perros sueltos a menos de 10 metros.",
+      "trigger_notes": 10,
+      "comfort_distance": "[\"Desensibilización a perros sueltos con método LAT.\",\"Redirección con premios de alto valor ante ciclistas.\"]",
+      "training_goals": "[]",
+      "created_at": "2026-08-10T23:05:20.043Z",
+      "updated_at": "2026-08-10T23:05:20.043Z"
+    }
+  ],
+  "walks": [
+    {
+      "id": 1,
+      "dog_id": 1,
+      "start_time": "2026-08-06T10:00:00Z",
+      "end_time": "2026-08-06T10:30:00Z",
+      "status": "completed",
+      "duration_seconds": 1800,
+      "distance_meters": 1500.5,
+      "route_coordinates": "[{\"lat\":4.6097,\"lng\":-74.0817,\"timestamp\":\"2026-08-06T10:00:00Z\"},{\"lat\":4.6102,\"lng\":-74.0821,\"timestamp\":\"2026-08-06T10:15:00Z\"},{\"lat\":4.611,\"lng\":-74.0825,\"timestamp\":\"2026-08-06T10:30:00Z\"}]",
+      "notes": "Paseo matutino en el parque central.",
+      "created_at": "2026-08-10T23:05:20.045Z"
+    },
+    {
+      "id": 2,
+      "dog_id": 1,
+      "start_time": "2026-08-06T10:00:00Z",
+      "end_time": "2026-08-06T10:30:00Z",
+      "status": "completed",
+      "duration_seconds": 1800,
+      "distance_meters": 1500.5,
+      "route_coordinates": "[{\"lat\":4.6115,\"lng\":-74.083,\"timestamp\":\"2026-08-06T16:00:00Z\"},{\"lat\":4.612,\"lng\":-74.0835,\"timestamp\":\"2026-08-06T16:20:00Z\"}]",
+      "notes": "Paseo de la tarde por el vecindario.",
+      "created_at": "2026-08-10T23:05:20.047Z"
+    },
+    {
+      "id": 5,
+      "dog_id": 1,
+      "start_time": "2026-08-10T23:14:38.020Z",
+      "end_time": "2026-08-10T23:15:13.567Z",
+      "status": "completed",
+      "duration_seconds": 35,
+      "distance_meters": 18.56,
+      "route_coordinates": "[{\"lat\":40.7829,\"lng\":-73.9654,\"timestamp\":\"2026-08-10T23:14:48.144Z\"},{\"lat\":40.782915,\"lng\":-73.965415,\"timestamp\":\"2026-08-10T23:14:50.648Z\"},{\"lat\":40.782925,\"lng\":-73.965427,\"timestamp\":\"2026-08-10T23:14:53.149Z\"},{\"lat\":40.782937,\"lng\":-73.965442,\"timestamp\":\"2026-08-10T23:14:55.648Z\"},{\"lat\":40.782948,\"lng\":-73.965455,\"timestamp\":\"2026-08-10T23:14:58.144Z\"},{\"lat\":40.782957,\"lng\":-73.965468,\"timestamp\":\"2026-08-10T23:15:00.645Z\"},{\"lat\":40.782971,\"lng\":-73.965482,\"timestamp\":\"2026-08-10T23:15:03.152Z\"},{\"lat\":40.782988,\"lng\":-73.965495,\"timestamp\":\"2026-08-10T23:15:05.655Z\"},{\"lat\":40.783002,\"lng\":-73.965503,\"timestamp\":\"2026-08-10T23:15:08.153Z\"},{\"lat\":40.783018,\"lng\":-73.96551,\"timestamp\":\"2026-08-10T23:15:10.645Z\"},{\"lat\":40.783037,\"lng\":-73.965521,\"timestamp\":\"2026-08-10T23:15:13.147Z\"}]",
+      "notes": null,
+      "created_at": "2026-08-10T23:14:38.060Z"
+    },
+    {
+      "id": 6,
+      "dog_id": 1,
+      "start_time": "2026-08-10T23:51:55.466Z",
+      "end_time": "2026-08-10T23:52:02.504Z",
+      "status": "completed",
+      "duration_seconds": 4,
+      "distance_meters": 0,
+      "route_coordinates": "[{\"lat\":4.7453930124758585,\"lng\":-74.09852028009448,\"timestamp\":\"2026-08-10T23:51:57.297Z\"}]",
+      "notes": null,
+      "created_at": "2026-08-10T23:51:55.469Z"
+    }
+  ],
+  "reactivity_events": [
+    {
+      "id": 1,
+      "walk_id": 1,
+      "dog_id": 1,
+      "trigger_type": 4,
+      "intensity_level": null,
+      "notes": "2026-08-06T10:05:00Z",
+      "latitude": 4.60971,
+      "longitude": -74.08175,
+      "timestamp": "Dog off leash",
+      "created_at": "2026-08-10T23:05:20.045Z"
+    },
+    {
+      "id": 2,
+      "walk_id": 1,
+      "dog_id": 1,
+      "trigger_type": 2,
+      "intensity_level": null,
+      "notes": "2026-08-06T10:20:00Z",
+      "latitude": 4.6102,
+      "longitude": -74.0821,
+      "timestamp": "Bike/Skateboard",
+      "created_at": "2026-08-10T23:05:20.046Z"
+    },
+    {
+      "id": 3,
+      "walk_id": 2,
+      "dog_id": 1,
+      "trigger_type": 3,
+      "intensity_level": null,
+      "notes": "2026-08-06T16:10:00Z",
+      "latitude": 4.6115,
+      "longitude": -74.083,
+      "timestamp": "Loud Noise",
+      "created_at": "2026-08-10T23:05:20.048Z"
+    }
+  ],
+  "auto_increment": {
+    "breeds": 13,
+    "dogs": 4,
+    "walks": 7,
+    "reactivity_events": 6
+  }
+}
