@@ -8,6 +8,8 @@ import DogProfilesView from './components/profiles/DogProfilesView';
 import TrainingGuidesView from './components/training/TrainingGuidesView';
 import AnalyticsDashboard from './components/analytics/AnalyticsDashboard';
 
+import ChatbotBubble from './components/common/ChatbotBubble';
+
 export function App() {
   const { activeTab, error } = useApp();
 
@@ -29,7 +31,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-cream-100 text-ink-primary font-sans">
+    <div className="min-h-screen flex flex-col bg-cream-100 text-ink-primary font-sans relative">
       {/* Top Header */}
       <Header />
 
@@ -46,6 +48,9 @@ export function App() {
 
         {renderActiveView()}
       </main>
+
+      {/* Floating Chatbot Widget Bubble */}
+      <ChatbotBubble />
     </div>
   );
 }
