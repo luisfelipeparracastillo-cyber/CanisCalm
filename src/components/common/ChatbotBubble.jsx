@@ -1,12 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
-import {
-  X,
-  Send,
-  Bot,
-  RefreshCw,
-  Dog,
-} from 'lucide-react';
+import { X, Send, Bot, RefreshCw, Dog } from 'lucide-react';
 
 // Hardcoded Webhook URL pointing to user n8n Chatbot Workflow
 const CHATBOT_WEBHOOK_URL =
@@ -85,12 +79,13 @@ export function ChatbotBubble() {
     if (!textToSend) setInputMsg('');
     setIsTyping(true);
 
-    // Send payload directly to hardcoded n8n Webhook URL
     try {
+      // 1. Send request to n8n Webhook
       const response = await fetch(CHATBOT_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          mensaje: text,
           message: text,
           dog_name: activeDog?.name || 'Mascota',
           breed: activeDog?.breed_name || 'Raza',
@@ -98,43 +93,58 @@ export function ChatbotBubble() {
         }),
       });
 
-      if (response.ok) {
-        const data = await response.json().catch(() => ({}));
-        const replyText =
-          data.reply || data.output || data.message || data.text || (typeof data === 'string' ? data : null);
+      if (!response.ok) {
+        throw new Error(`El servidor n8n respondió con estado ${response.status}`);
+      }
 
-        if (replyText) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: `bot-${Date.now()}`,
-              sender: 'bot',
-              text: replyText,
-              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            },
-          ]);
-          setIsTyping(false);
-          return;
-        }
+      // 2. Read response (supports plain text or JSON output)
+      const rawText = await response.text();
+      let replyText = rawText;
+
+      try {
+        const jsonData = JSON.parse(rawText);
+        replyText =
+          jsonData.reply ||
+          jsonData.output ||
+          jsonData.message ||
+          jsonData.text ||
+          (typeof jsonData === 'string' ? jsonData : rawText);
+      } catch (e) {
+        // Keeps raw text if not JSON
+      }
+
+      if (replyText) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `bot-${Date.now()}`,
+            sender: 'bot',
+            text: replyText,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+        setIsTyping(false);
+        return;
       }
     } catch (err) {
-      console.warn('Webhook request failed, falling back to local canine AI:', err.message);
-    }
+      console.warn('n8n Webhook request failed, falling back to local canine AI:', err.message);
 
-    // Local AI Fallback response if webhook is inactive or loading
-    setTimeout(() => {
-      const localReply = generateLocalAiResponse(text, activeDog);
+      // Show friendly error / fallback message
+      const fallbackReply = generateLocalAiResponse(text, activeDog);
       setMessages((prev) => [
         ...prev,
         {
           id: `bot-${Date.now()}`,
           sender: 'bot',
-          text: localReply,
+          text: fallbackReply,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
       setIsTyping(false);
-    }, 700);
+      return;
+    }
+
+    setIsTyping(false);
   };
 
   return (
@@ -164,15 +174,15 @@ export function ChatbotBubble() {
           {/* Header */}
           <div className="bg-gradient-to-r from-sage-700 to-sage-800 text-white p-4 flex items-center justify-between shadow-soft">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
-                <Bot className="w-6 h-6 text-cream-100" />
+              <div className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20 text-xl">
+                🤖
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h3 className="font-bold text-sm">Kira AI</h3>
+                  <h3 className="font-bold text-sm">Asistente Kira AI</h3>
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 </div>
-                <p className="text-[11px] text-cream-200">Asistente de Entrenamiento Canino</p>
+                <p className="text-[11px] text-cream-200">En línea • n8n Webhook Conectado</p>
               </div>
             </div>
 
@@ -210,21 +220,25 @@ export function ChatbotBubble() {
                 className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
               >
                 <div
-                  className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl leading-relaxed ${
+                  className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl leading-relaxed whitespace-pre-wrap ${
                     msg.sender === 'user'
                       ? 'bg-terracotta-500 text-white rounded-br-none shadow-soft'
+                      : msg.sender === 'error'
+                      ? 'bg-rose-50 border border-rose-200 text-rose-800 rounded-bl-none shadow-soft'
                       : 'bg-white border border-surface-border text-sage-900 rounded-bl-none shadow-soft'
                   }`}
                 >
-                  <p className="whitespace-pre-line">{msg.text}</p>
+                  <p>{msg.text}</p>
                 </div>
                 <span className="text-[10px] text-ink-muted mt-1 px-1">{msg.timestamp}</span>
               </div>
             ))}
 
             {isTyping && (
-              <div className="flex items-center gap-1.5 text-sage-600 text-xs italic bg-white p-2.5 rounded-2xl rounded-bl-none border border-surface-border w-max animate-pulse">
-                <Bot className="w-3.5 h-3.5" /> Escribiendo respuesta...
+              <div className="flex items-center gap-1.5 text-sage-600 text-xs bg-white p-3 rounded-2xl rounded-bl-none border border-surface-border w-max shadow-soft">
+                <span className="w-2 h-2 rounded-full bg-sage-400 animate-bounce"></span>
+                <span className="w-2 h-2 rounded-full bg-sage-500 animate-bounce [animation-delay:0.2s]"></span>
+                <span className="w-2 h-2 rounded-full bg-sage-600 animate-bounce [animation-delay:0.4s]"></span>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -253,16 +267,17 @@ export function ChatbotBubble() {
           >
             <input
               type="text"
-              placeholder="Escribe tu consulta sobre entrenamiento..."
+              placeholder="Escribe tu mensaje…"
               value={inputMsg}
               onChange={(e) => setInputMsg(e.target.value)}
-              className="flex-1 px-3.5 py-2 bg-cream-100 border border-surface-border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-sage-400"
+              className="flex-1 px-4 py-2.5 bg-cream-100 border border-surface-border rounded-full text-xs focus:outline-none focus:ring-2 focus:ring-sage-400"
+              autoComplete="off"
             />
             <button
               type="submit"
               disabled={!inputMsg.trim() || isTyping}
-              className="p-2 bg-sage-600 hover:bg-sage-700 disabled:opacity-50 text-white rounded-xl transition-all cursor-pointer shadow-soft"
-              title="Enviar Mensaje"
+              className="w-10 h-10 bg-sage-600 hover:bg-sage-700 disabled:opacity-50 text-white rounded-full transition-all cursor-pointer shadow-soft flex items-center justify-center flex-none"
+              title="Enviar"
             >
               <Send className="w-4 h-4" />
             </button>
