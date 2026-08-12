@@ -8,10 +8,10 @@ import {
   Dog,
 } from 'lucide-react';
 
-// Hardcoded Webhook URL pointing to n8n Chatbot Workflow
+// Hardcoded Webhook URL pointing to user n8n Chatbot Workflow
 const CHATBOT_WEBHOOK_URL =
   import.meta.env.VITE_CHATBOT_WEBHOOK_URL ||
-  'https://felipe-p90.app.n8n.cloud/webhook/caniscalm-chatbot';
+  'https://felipe-p90.app.n8n.cloud/webhook-test/caniscalm-chatbot';
 
 const DEFAULT_WELCOME_MESSAGE = {
   id: 'welcome-1',
