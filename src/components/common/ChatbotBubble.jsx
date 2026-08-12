@@ -7,25 +7,18 @@ const CHATBOT_WEBHOOK_URL =
   import.meta.env.VITE_CHATBOT_WEBHOOK_URL ||
   'https://felipe-p90.app.n8n.cloud/webhook-test/caniscalm-chatbot';
 
-const DEFAULT_WELCOME_MESSAGE = {
+const INITIAL_WELCOME_MESSAGE = {
   id: 'welcome-1',
   sender: 'bot',
-  text: '¡Hola! Soy Kira AI, tu asistente en entrenamiento reactivo canino. ¿En qué puedo ayudarte hoy durante tus paseos o entrenamiento?',
+  text: '¡Hola! Soy tu asistente. ¿En qué puedo ayudarte hoy?',
   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
 };
-
-const QUICK_QUESTIONS = [
-  '🐶 ¿Cómo reduzco la reactividad a otros perros?',
-  '👁️ ¿Qué es el método LAT (Look At That)?',
-  '⏱️ ¿Cómo aplico la regla de los 3 segundos?',
-  '🍖 ¿Qué premios de alto valor debo usar?',
-];
 
 export function ChatbotBubble() {
   const { activeDog } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [inputMsg, setInputMsg] = useState('');
-  const [messages, setMessages] = useState([DEFAULT_WELCOME_MESSAGE]);
+  const [messages, setMessages] = useState([INITIAL_WELCOME_MESSAGE]);
   const [isTyping, setIsTyping] = useState(false);
 
   const messagesEndRef = useRef(null);
@@ -40,8 +33,9 @@ export function ChatbotBubble() {
     }
   }, [messages, isOpen, isTyping]);
 
-  const handleSendMessage = async (textToSend) => {
-    const text = (textToSend || inputMsg).trim();
+  const handleSendMessage = async (e) => {
+    if (e) e.preventDefault();
+    const text = inputMsg.trim();
     if (!text) return;
 
     const userMessage = {
@@ -52,11 +46,11 @@ export function ChatbotBubble() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    if (!textToSend) setInputMsg('');
+    setInputMsg('');
     setIsTyping(true);
 
     try {
-      // 1. Send HTTP POST payload exclusively to n8n Webhook
+      // 1. Send HTTP POST payload directly to n8n Webhook
       const response = await fetch(CHATBOT_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,10 +64,10 @@ export function ChatbotBubble() {
       });
 
       if (!response.ok) {
-        throw new Error(`El servidor de n8n respondió con estado ${response.status}`);
+        throw new Error(`El servidor n8n respondió con estado ${response.status}`);
       }
 
-      // 2. Extract n8n response text / JSON
+      // 2. Read n8n output text / JSON
       const rawText = await response.text();
       let replyText = rawText;
 
@@ -103,7 +97,7 @@ export function ChatbotBubble() {
         throw new Error('El flujo de n8n respondió pero no envió texto en la respuesta.');
       }
     } catch (err) {
-      // Show explicit connection error bubble (NO DEFAULT/MOCK FALLBACK RESPONSES)
+      // Display explicit connection error bubble (NO FALLBACK SIMULATIONS)
       setMessages((prev) => [
         ...prev,
         {
@@ -133,9 +127,6 @@ export function ChatbotBubble() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-terracotta-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-4 w-4 bg-terracotta-500 border-2 border-white shadow"></span>
           </span>
-          <span className="absolute right-20 bg-sage-900 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-sage-700">
-            🐕 ¿Dudas de entrenamiento? ¡Pregúntame!
-          </span>
         </button>
       )}
 
@@ -150,16 +141,16 @@ export function ChatbotBubble() {
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h3 className="font-bold text-sm">Asistente Kira AI</h3>
+                  <h3 className="font-bold text-sm">Asistente</h3>
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 </div>
-                <p className="text-[11px] text-cream-200">En línea • n8n Webhook Conectado</p>
+                <p className="text-[11px] text-cream-200">En línea</p>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
               <button
-                onClick={() => setMessages([DEFAULT_WELCOME_MESSAGE])}
+                onClick={() => setMessages([INITIAL_WELCOME_MESSAGE])}
                 className="p-1.5 rounded-xl hover:bg-white/10 transition-colors text-cream-200"
                 title="Limpiar Conversación"
               >
@@ -215,25 +206,9 @@ export function ChatbotBubble() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick Questions Chips */}
-          <div className="p-2 border-t border-surface-border bg-white overflow-x-auto flex gap-1.5 scrollbar-none">
-            {QUICK_QUESTIONS.map((q, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleSendMessage(q)}
-                className="px-2.5 py-1 rounded-full bg-sage-50 hover:bg-sage-100 border border-sage-200 text-sage-800 text-[11px] font-medium whitespace-nowrap transition-colors cursor-pointer"
-              >
-                {q}
-              </button>
-            ))}
-          </div>
-
           {/* Input Form */}
           <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSendMessage();
-            }}
+            onSubmit={handleSendMessage}
             className="p-3 bg-white border-t border-surface-border flex items-center gap-2"
           >
             <input
