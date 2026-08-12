@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
-import { X, Send, Bot, RefreshCw, Dog } from 'lucide-react';
+import { X, Send, RefreshCw, Dog } from 'lucide-react';
 
 // Hardcoded Webhook URL pointing to user n8n Chatbot Workflow
 const CHATBOT_WEBHOOK_URL =
@@ -20,30 +20,6 @@ const QUICK_QUESTIONS = [
   '⏱️ ¿Cómo aplico la regla de los 3 segundos?',
   '🍖 ¿Qué premios de alto valor debo usar?',
 ];
-
-// Fallback intelligent canine reactivity knowledge base
-function generateLocalAiResponse(userMsg, activeDog) {
-  const query = userMsg.toLowerCase();
-  const dogName = activeDog?.name || 'tu perro';
-
-  if (query.includes('lat') || query.includes('look at that') || query.includes('mirar')) {
-    return `El método **Look At That (LAT)** ayuda a ${dogName} a asociar la presencia de un detonante con calma:\n\n1. Detecta el detonante a una **distancia de confort** (antes de que ${dogName} se tensione).\n2. En cuanto ${dogName} mire al detonante, marca inmediatamente con tu clicker o palabra puente (*"¡Sí!"*).\n3. Ofrécele un premio de alto valor.\n4. Repite varias veces hasta que al ver el detonante, volteé a mirarte a ti espontáneamente.`;
-  }
-
-  if (query.includes('3 segundo') || query.includes('tres segundo') || query.includes('tiempo')) {
-    return `La **Regla de los 3 Segundos** previene la acumulación de tensión:\n\n• Permite que ${dogName} olfatee o mire un estímulo por máximo 3 segundos.\n• Antes del segundo 3, llama su atención suavemente y cambia de dirección.\n• Esto evita la fijación visual de mirada y mantiene su umbral de excitabilidad bajo control.`;
-  }
-
-  if (query.includes('premio') || query.includes('comida') || query.includes('recompensa')) {
-    return `Para modificar conducta reactiva en ${dogName}, usa **Premios de Grado A (Alto Valor)**:\n\n• Trocitos pequeños de pollo cocido, hígado, salchicha de pavo o queso magro.\n• Deben ser suaves, húmedos y fáciles de tragar rápido sin distractores de masticación.`;
-  }
-
-  if (query.includes('reactiv') || query.includes('perro') || query.includes('ladra') || query.includes('jala')) {
-    return `Para manejar la reactividad de ${dogName} en el paseo:\n\n1. **Mantén distancia de seguridad**: Aumenta la distancia respecto al estímulo antes de que ladre.\n2. **Tensión en la correa**: Mantén la correa floja pero firme. La tensión en la correa transmite tu ansiedad al perro.\n3. **Redirección Olfativa**: Si se excita, esparce premios en el pasto (*Sembrado de premios*) para bajar sus pulsaciones olfateando.`;
-  }
-
-  return `Entendido. Para ${dogName}, recuerda que la clave es la **desensibilización sistemática a la distancia adecuada**. Trabaja siempre por debajo del umbral de excitación y recompensa cada mirada de calma. ¿Te gustaría profundizar en el método LAT, distancia de confort o gestión de detonantes?`;
-}
 
 export function ChatbotBubble() {
   const { activeDog } = useApp();
@@ -80,7 +56,7 @@ export function ChatbotBubble() {
     setIsTyping(true);
 
     try {
-      // 1. Send request to n8n Webhook
+      // 1. Send HTTP POST payload exclusively to n8n Webhook
       const response = await fetch(CHATBOT_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -94,10 +70,10 @@ export function ChatbotBubble() {
       });
 
       if (!response.ok) {
-        throw new Error(`El servidor n8n respondió con estado ${response.status}`);
+        throw new Error(`El servidor de n8n respondió con estado ${response.status}`);
       }
 
-      // 2. Read response (supports plain text or JSON output)
+      // 2. Extract n8n response text / JSON
       const rawText = await response.text();
       let replyText = rawText;
 
@@ -110,10 +86,10 @@ export function ChatbotBubble() {
           jsonData.text ||
           (typeof jsonData === 'string' ? jsonData : rawText);
       } catch (e) {
-        // Keeps raw text if not JSON
+        // Keeps raw text response
       }
 
-      if (replyText) {
+      if (replyText && typeof replyText === 'string' && replyText.trim()) {
         setMessages((prev) => [
           ...prev,
           {
@@ -123,28 +99,23 @@ export function ChatbotBubble() {
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
         ]);
-        setIsTyping(false);
-        return;
+      } else {
+        throw new Error('El flujo de n8n respondió pero no envió texto en la respuesta.');
       }
     } catch (err) {
-      console.warn('n8n Webhook request failed, falling back to local canine AI:', err.message);
-
-      // Show friendly error / fallback message
-      const fallbackReply = generateLocalAiResponse(text, activeDog);
+      // Show explicit connection error bubble (NO DEFAULT/MOCK FALLBACK RESPONSES)
       setMessages((prev) => [
         ...prev,
         {
-          id: `bot-${Date.now()}`,
-          sender: 'bot',
-          text: fallbackReply,
+          id: `error-${Date.now()}`,
+          sender: 'error',
+          text: `Ups, no pude conectarme. Revisa que el flujo de n8n esté activo y que la URL sea correcta. (${err.message})`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
+    } finally {
       setIsTyping(false);
-      return;
     }
-
-    setIsTyping(false);
   };
 
   return (
@@ -157,7 +128,7 @@ export function ChatbotBubble() {
           aria-label="Abrir Asistente Canino IA"
           title="Asistente Canino IA (Kira AI)"
         >
-          <Bot className="w-8 h-8 transition-transform group-hover:rotate-12 drop-shadow" />
+          <span className="text-2xl transition-transform group-hover:rotate-12 drop-shadow">🤖</span>
           <span className="absolute -top-1 -right-1 flex h-4 w-4">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-terracotta-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-4 w-4 bg-terracotta-500 border-2 border-white shadow"></span>
