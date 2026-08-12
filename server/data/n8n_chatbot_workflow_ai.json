@@ -1,0 +1,127 @@
+{
+  "name": "CanisCalm Chatbot IA - Con Nodo HTTP API",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "caniscalm-chatbot",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "id": "node-webhook-trigger",
+      "name": "Webhook Chatbot",
+      "webhookId": "caniscalm-chatbot-id"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extraer variables enviadas desde el Chatbot de CanisCalm\nconst body = $json.body || $json;\nconst userMessage = body.message || '¿Cómo reduzco la reactividad?';\nconst dogName = body.dog_name || 'mi perro';\nconst breed = body.breed || 'raza canina';\n\nconst systemPrompt = `Eres Kira AI, una educadora canina experta en modificación de conducta y gestión de reactividad en paseos.\\nEstás ayudando a la familia de ${dogName}, un perro de raza ${breed}.\\nTu objetivo es dar respuestas claras, empáticas, prácticas y estructuradas en viñetas.\\nPromueve siempre la desensibilización sistemática, el método LAT (Look At That), la regla de los 3 segundos, distancias de confort y refuerzo positivo sin aversivos.\\nMantén tus respuestas concisas (máximo 150 palabras).`;\n\nreturn [{\n  json: {\n    systemPrompt,\n    userMessage,\n    dogName,\n    breed\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0],
+      "id": "node-prepare-prompt",
+      "name": "Preparar Prompt para IA"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer TU_API_KEY_DE_IA_AQUI"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o-mini\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"{{ $json.systemPrompt }}\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $json.userMessage }}\"\n    }\n  ],\n  \"temperature\": 0.7\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 0],
+      "id": "node-http-ai-request",
+      "name": "HTTP Request - Modelo de IA"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extraer el texto generado por la API del Modelo de IA\nconst response = $json;\nlet reply = 'No se recibió respuesta del modelo de IA.';\n\nif (response.choices && response.choices.length > 0 && response.choices[0].message) {\n  reply = response.choices[0].message.content;\n} else if (response.reply || response.output || response.text) {\n  reply = response.reply || response.output || response.text;\n}\n\nreturn [{ json: { reply } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 0],
+      "id": "node-extract-reply",
+      "name": "Extraer Respuesta"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [880, 0],
+      "id": "node-respond-webhook",
+      "name": "Responder al Chatbot"
+    }
+  ],
+  "connections": {
+    "Webhook Chatbot": {
+      "main": [
+        [
+          {
+            "node": "Preparar Prompt para IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Prompt para IA": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Modelo de IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Modelo de IA": {
+      "main": [
+        [
+          {
+            "node": "Extraer Respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer Respuesta": {
+      "main": [
+        [
+          {
+            "node": "Responder al Chatbot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
