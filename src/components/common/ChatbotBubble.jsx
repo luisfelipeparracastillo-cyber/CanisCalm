@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
-  MessageSquare,
   X,
   Send,
   Bot,
-  Sparkles,
   RefreshCw,
-  Settings,
   Dog,
-  ShieldCheck,
-  ChevronDown,
 } from 'lucide-react';
+
+// Hardcoded Webhook URL pointing to n8n Chatbot Workflow
+const CHATBOT_WEBHOOK_URL =
+  import.meta.env.VITE_CHATBOT_WEBHOOK_URL ||
+  'https://felipe-p90.app.n8n.cloud/webhook/caniscalm-chatbot';
 
 const DEFAULT_WELCOME_MESSAGE = {
   id: 'welcome-1',
@@ -57,13 +57,6 @@ export function ChatbotBubble() {
   const [inputMsg, setInputMsg] = useState('');
   const [messages, setMessages] = useState([DEFAULT_WELCOME_MESSAGE]);
   const [isTyping, setIsTyping] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-
-  // Custom Webhook URL state (loads from .env or local storage override)
-  const envWebhook = import.meta.env.VITE_CHATBOT_WEBHOOK_URL || '';
-  const [webhookUrl, setWebhookUrl] = useState(() => {
-    return localStorage.getItem('caniscalm_chatbot_webhook_url') || envWebhook;
-  });
 
   const messagesEndRef = useRef(null);
 
@@ -76,12 +69,6 @@ export function ChatbotBubble() {
       scrollToBottom();
     }
   }, [messages, isOpen, isTyping]);
-
-  const handleSaveWebhook = (url) => {
-    setWebhookUrl(url);
-    localStorage.setItem('caniscalm_chatbot_webhook_url', url);
-    setShowSettings(false);
-  };
 
   const handleSendMessage = async (textToSend) => {
     const text = (textToSend || inputMsg).trim();
@@ -98,25 +85,25 @@ export function ChatbotBubble() {
     if (!textToSend) setInputMsg('');
     setIsTyping(true);
 
-    // If Webhook URL is configured, send payload to Webhook (n8n / OpenAI / Typebot)
-    if (webhookUrl && webhookUrl.startsWith('http')) {
-      try {
-        const response = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: text,
-            dog_name: activeDog?.name || 'Mascota',
-            breed: activeDog?.breed_name || 'Raza',
-            history: messages.slice(-6),
-          }),
-        });
+    // Send payload directly to hardcoded n8n Webhook URL
+    try {
+      const response = await fetch(CHATBOT_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          dog_name: activeDog?.name || 'Mascota',
+          breed: activeDog?.breed_name || 'Raza',
+          history: messages.slice(-6),
+        }),
+      });
 
-        if (response.ok) {
-          const data = await response.json().catch(() => ({}));
-          const replyText =
-            data.reply || data.output || data.message || data.text || JSON.stringify(data);
+      if (response.ok) {
+        const data = await response.json().catch(() => ({}));
+        const replyText =
+          data.reply || data.output || data.message || data.text || (typeof data === 'string' ? data : null);
 
+        if (replyText) {
           setMessages((prev) => [
             ...prev,
             {
@@ -129,12 +116,12 @@ export function ChatbotBubble() {
           setIsTyping(false);
           return;
         }
-      } catch (err) {
-        console.warn('Webhook chatbot request failed, using local AI fallback:', err.message);
       }
+    } catch (err) {
+      console.warn('Webhook request failed, falling back to local canine AI:', err.message);
     }
 
-    // Local AI Fallback response
+    // Local AI Fallback response if webhook is inactive or loading
     setTimeout(() => {
       const localReply = generateLocalAiResponse(text, activeDog);
       setMessages((prev) => [
@@ -151,21 +138,21 @@ export function ChatbotBubble() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 font-sans">
+    <div className="fixed bottom-6 right-6 z-[99999] font-sans">
       {/* Floating Chat Bubble Toggle Button */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="group relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-r from-sage-600 to-sage-700 text-white shadow-hover transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-white/40 cursor-pointer"
+          className="group relative flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-sage-600 via-sage-700 to-terracotta-600 text-white shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-white cursor-pointer ring-4 ring-sage-500/20"
           aria-label="Abrir Asistente Canino IA"
           title="Asistente Canino IA (Kira AI)"
         >
-          <Bot className="w-7 h-7 transition-transform group-hover:rotate-12" />
+          <Bot className="w-8 h-8 transition-transform group-hover:rotate-12 drop-shadow" />
           <span className="absolute -top-1 -right-1 flex h-4 w-4">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-terracotta-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-4 w-4 bg-terracotta-500 border-2 border-white"></span>
+            <span className="relative inline-flex rounded-full h-4 w-4 bg-terracotta-500 border-2 border-white shadow"></span>
           </span>
-          <span className="absolute right-16 bg-sage-900 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+          <span className="absolute right-20 bg-sage-900 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-sage-700">
             🐕 ¿Dudas de entrenamiento? ¡Pregúntame!
           </span>
         </button>
@@ -185,20 +172,11 @@ export function ChatbotBubble() {
                   <h3 className="font-bold text-sm">Kira AI</h3>
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 </div>
-                <p className="text-[11px] text-cream-200">
-                  {webhookUrl ? '⚡ Webhook Conectado' : '💡 Asistente Canino Local'}
-                </p>
+                <p className="text-[11px] text-cream-200">Asistente de Entrenamiento Canino</p>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
-              <button
-                onClick={() => setShowSettings((prev) => !prev)}
-                className="p-1.5 rounded-xl hover:bg-white/10 transition-colors text-cream-200"
-                title="Configuración de Webhook"
-              >
-                <Settings className="w-4 h-4" />
-              </button>
               <button
                 onClick={() => setMessages([DEFAULT_WELCOME_MESSAGE])}
                 className="p-1.5 rounded-xl hover:bg-white/10 transition-colors text-cream-200"
@@ -215,34 +193,6 @@ export function ChatbotBubble() {
               </button>
             </div>
           </div>
-
-          {/* Settings Panel (Custom Webhook Input) */}
-          {showSettings && (
-            <div className="bg-sage-50 p-3.5 border-b border-surface-border space-y-2 animate-fade-in text-xs">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-sage-900 flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-terracotta-500" /> Enlace de Webhook n8n / IA
-                </span>
-                <span className="text-[10px] text-ink-muted">Opcional</span>
-              </div>
-              <input
-                type="url"
-                placeholder="https://felipe-p90.app.n8n.cloud/webhook/..."
-                value={webhookUrl}
-                onChange={(e) => setWebhookUrl(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-surface-border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-sage-400"
-              />
-              <div className="flex justify-end gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => handleSaveWebhook(webhookUrl)}
-                  className="px-3 py-1 bg-sage-700 text-white rounded-lg font-bold text-[11px] hover:bg-sage-800 transition-colors cursor-pointer"
-                >
-                  Guardar Enlace Webhook
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Active Pet Context Banner */}
           <div className="bg-sage-50/60 px-4 py-1.5 border-b border-surface-border flex items-center justify-between text-[11px] text-ink-secondary">
