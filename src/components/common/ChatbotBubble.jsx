@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { X, Send, RefreshCw, Dog } from 'lucide-react';
 
-// Hardcoded Webhook URL pointing to user n8n Chatbot Workflow
-const CHATBOT_WEBHOOK_URL =
-  import.meta.env.VITE_CHATBOT_WEBHOOK_URL ||
-  'https://felipe-p90.app.n8n.cloud/webhook-test/caniscalm-chatbot';
+// Endpoints to try (Production webhook first, then test webhook)
+const WEBHOOK_ENDPOINTS = [
+  import.meta.env.VITE_CHATBOT_WEBHOOK_URL,
+  'https://felipe-p90.app.n8n.cloud/webhook/caniscalm-chatbot',
+  'https://felipe-p90.app.n8n.cloud/webhook-test/caniscalm-chatbot',
+].filter(Boolean);
 
 const INITIAL_WELCOME_MESSAGE = {
   id: 'welcome-1',
@@ -13,6 +15,31 @@ const INITIAL_WELCOME_MESSAGE = {
   text: '¡Hola! Soy tu asistente. ¿En qué puedo ayudarte hoy?',
   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
 };
+
+async function sendWebhookRequest(payload) {
+  let lastError = null;
+
+  // Try production endpoint first, fallback to test endpoint
+  for (const targetUrl of WEBHOOK_ENDPOINTS) {
+    try {
+      const response = await fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        return response;
+      } else {
+        lastError = new Error(`Estado ${response.status} en ${targetUrl}`);
+      }
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error('No se pudo establecer conexión con n8n.');
+}
 
 export function ChatbotBubble() {
   const { activeDog } = useApp();
@@ -50,22 +77,14 @@ export function ChatbotBubble() {
     setIsTyping(true);
 
     try {
-      // 1. Send HTTP POST payload directly to n8n Webhook
-      const response = await fetch(CHATBOT_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mensaje: text,
-          message: text,
-          dog_name: activeDog?.name || 'Mascota',
-          breed: activeDog?.breed_name || 'Raza',
-          history: messages.slice(-6),
-        }),
+      // 1. Try sending POST request to n8n production or test webhook
+      const response = await sendWebhookRequest({
+        mensaje: text,
+        message: text,
+        dog_name: activeDog?.name || 'Mascota',
+        breed: activeDog?.breed_name || 'Raza',
+        history: messages.slice(-6),
       });
-
-      if (!response.ok) {
-        throw new Error(`El servidor n8n respondió con estado ${response.status}`);
-      }
 
       // 2. Read n8n output text / JSON
       const rawText = await response.text();
@@ -97,13 +116,13 @@ export function ChatbotBubble() {
         throw new Error('El flujo de n8n respondió pero no envió texto en la respuesta.');
       }
     } catch (err) {
-      // Display explicit connection error bubble (NO FALLBACK SIMULATIONS)
+      // Display explicit connection error bubble
       setMessages((prev) => [
         ...prev,
         {
           id: `error-${Date.now()}`,
           sender: 'error',
-          text: `Ups, no pude conectarme. Revisa que el flujo de n8n esté activo y que la URL sea correcta. (${err.message})`,
+          text: `Ups, no pude conectarme. Revisa que el flujo de n8n esté activo (Active: ON) en n8n. (${err.message})`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
