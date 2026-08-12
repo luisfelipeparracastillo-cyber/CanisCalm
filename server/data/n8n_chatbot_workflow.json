@@ -1,0 +1,67 @@
+{
+  "name": "CanisCalm Chatbot IA Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "caniscalm-chatbot",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "id": "node-webhook-trigger",
+      "name": "Webhook Chatbot",
+      "webhookId": "caniscalm-chatbot-id"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extraer datos enviados por el Chatbot Flotante CanisCalm\nconst body = $json.body || $json;\nconst userMessage = body.message || '¿Cómo manejo la reactividad?';\nconst dogName = body.dog_name || 'tu perro';\nconst breed = body.breed || 'raza canina';\n\nconst query = userMessage.toLowerCase();\nlet reply = '';\n\nif (query.includes('lat') || query.includes('look at that') || query.includes('mirar')) {\n  reply = `🤖 [n8n AI]: El método **Look At That (LAT)** para ${dogName} (${breed}):\\n\\n1. Mantén a ${dogName} a una distancia segura donde vea al detonante sin reaccionar.\\n2. En cuanto lo mire, di la palabra puente (*\"¡Sí!\"*) o usa el clicker.\\n3. Entrégale inmediatamente un premio de alto valor.\\n4. Repite varias veces hasta que al ver el estímulo, ${dogName} te mire a ti pidiendo su premio.`;\n} else if (query.includes('3 segundo') || query.includes('tres segundo')) {\n  reply = `🤖 [n8n AI]: La **Regla de los 3 Segundos** para ${dogName}:\\n\\n• Permite que ${dogName} mire u olfatee un estímulo por máximo 3 segundos.\\n• Antes de alcanzar el 3er segundo, llama su atención suavemente y cambia de dirección para romper la fijación visual.`;\n} else if (query.includes('premio') || query.includes('comida')) {\n  reply = `🤖 [n8n AI]: Premios recomendados para ${dogName}:\\n\\n• Pollo desmenuzado, salchicha picada o hígado deshidratado.\\n• Deben ser pequeños, suaves y fáciles de consumir sin masticar demasiado.`;\n} else {\n  reply = `🤖 [n8n AI]: Hola, soy el asistente de entrenamiento para ${dogName} (${breed}). Para trabajar la reactividad, mantén siempre distancia de confort, premio por la calma y evita la tensión en la correa. ¿Deseas consultar sobre el método LAT, regla de los 3 segundos o premios?`;\n}\n\nreturn [{ json: { reply } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0],
+      "id": "node-code-processor",
+      "name": "IA Experta Canina"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [440, 0],
+      "id": "node-respond-webhook",
+      "name": "Responder al Chatbot"
+    }
+  ],
+  "connections": {
+    "Webhook Chatbot": {
+      "main": [
+        [
+          {
+            "node": "IA Experta Canina",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA Experta Canina": {
+      "main": [
+        [
+          {
+            "node": "Responder al Chatbot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
