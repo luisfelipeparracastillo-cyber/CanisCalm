@@ -2,12 +2,30 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { X, Send, RefreshCw, Dog } from 'lucide-react';
 
-// Endpoints to try (Production webhook first, then test webhook)
-const WEBHOOK_ENDPOINTS = [
-  import.meta.env.VITE_CHATBOT_WEBHOOK_URL,
-  'https://felipe-p90.app.n8n.cloud/webhook/caniscalm-chatbot',
-  'https://felipe-p90.app.n8n.cloud/webhook-test/caniscalm-chatbot',
-].filter(Boolean);
+// Exact Flowise AI prediction endpoint requested by user
+const FLOWISE_API_URL =
+  import.meta.env.VITE_FLOWISE_API_URL ||
+  'https://cloud.flowiseai.com/api/v1/prediction/d7442141-a115-48dc-aa61-a97a3e9e1845';
+
+/**
+ * Exact query function for Flowise AI Prediction API
+ */
+async function queryFlowise(data) {
+  const response = await fetch(FLOWISE_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Servidor de IA respondió con estado ${response.status}`);
+  }
+
+  const result = await response.json();
+  return result;
+}
 
 const INITIAL_WELCOME_MESSAGE = {
   id: 'welcome-1',
@@ -15,31 +33,6 @@ const INITIAL_WELCOME_MESSAGE = {
   text: '¡Hola! Soy tu asistente. ¿En qué puedo ayudarte hoy?',
   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
 };
-
-async function sendWebhookRequest(payload) {
-  let lastError = null;
-
-  // Try production endpoint first, fallback to test endpoint
-  for (const targetUrl of WEBHOOK_ENDPOINTS) {
-    try {
-      const response = await fetch(targetUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        return response;
-      } else {
-        lastError = new Error(`Estado ${response.status} en ${targetUrl}`);
-      }
-    } catch (err) {
-      lastError = err;
-    }
-  }
-
-  throw lastError || new Error('No se pudo establecer conexión con n8n.');
-}
 
 export function ChatbotBubble() {
   const { activeDog } = useApp();
@@ -77,32 +70,28 @@ export function ChatbotBubble() {
     setIsTyping(true);
 
     try {
-      // 1. Try sending POST request to n8n production or test webhook
-      const response = await sendWebhookRequest({
-        mensaje: text,
-        message: text,
-        dog_name: activeDog?.name || 'Mascota',
-        breed: activeDog?.breed_name || 'Raza',
-        history: messages.slice(-6),
-      });
+      // 1. Call Flowise AI Prediction API with question and dog context
+      const dogContext = activeDog?.name
+        ? ` [Mascota: ${activeDog.name}, Raza: ${activeDog.breed_name || 'Desconocida'}]`
+        : '';
+      const fullQuestion = `${text}${dogContext}`;
 
-      // 2. Read n8n output text / JSON
-      const rawText = await response.text();
-      let replyText = rawText;
+      const apiResult = await queryFlowise({ question: fullQuestion });
 
-      try {
-        const jsonData = JSON.parse(rawText);
+      // 2. Parse text response returned by Flowise AI
+      let replyText = '';
+      if (typeof apiResult === 'string') {
+        replyText = apiResult;
+      } else if (apiResult && typeof apiResult === 'object') {
         replyText =
-          jsonData.reply ||
-          jsonData.output ||
-          jsonData.message ||
-          jsonData.text ||
-          (typeof jsonData === 'string' ? jsonData : rawText);
-      } catch (e) {
-        // Keeps raw text response
+          apiResult.text ||
+          apiResult.output ||
+          apiResult.reply ||
+          apiResult.message ||
+          (apiResult.json ? JSON.stringify(apiResult.json) : JSON.stringify(apiResult));
       }
 
-      if (replyText && typeof replyText === 'string' && replyText.trim()) {
+      if (replyText && replyText.trim()) {
         setMessages((prev) => [
           ...prev,
           {
@@ -113,16 +102,16 @@ export function ChatbotBubble() {
           },
         ]);
       } else {
-        throw new Error('El flujo de n8n respondió pero no envió texto en la respuesta.');
+        throw new Error('La IA respondió pero no envió texto.');
       }
     } catch (err) {
-      // Display explicit connection error bubble
+      // Display connection error bubble
       setMessages((prev) => [
         ...prev,
         {
           id: `error-${Date.now()}`,
           sender: 'error',
-          text: `Ups, no pude conectarme. Revisa que el flujo de n8n esté activo (Active: ON) en n8n. (${err.message})`,
+          text: `Ups, no pude conectarme con el servicio de IA Flowise. (${err.message})`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
@@ -163,7 +152,7 @@ export function ChatbotBubble() {
                   <h3 className="font-bold text-sm">Asistente</h3>
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 </div>
-                <p className="text-[11px] text-cream-200">En línea</p>
+                <p className="text-[11px] text-cream-200">En línea • Flowise AI Conectado</p>
               </div>
             </div>
 
